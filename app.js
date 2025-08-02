@@ -1,87 +1,134 @@
-// Launchquests Website JavaScript
+// Launch Quests Professional Website JavaScript
+// Fixed navigation and functionality issues
 
-// Initialize the application
+// Global variables
+let currentTestimonial = 0;
+let isLoading = true;
+
+// Initialize everything when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
+    initializeLoading();
     initializeNavigation();
     initializeMobileMenu();
-    initializeFormHandling();
+    initializeTestimonials();
     initializeScrollEffects();
+    initializeFormHandling();
     initializeAnimations();
-    createScrollIndicator();
-    addInteractiveEffects();
-    manageFocus();
+    initializeInteractiveElements();
 });
 
-// Navigation functionality
-function initializeNavigation() {
-    const navLinks = document.querySelectorAll('.nav-link');
-    const pages = document.querySelectorAll('.page');
+// Loading Screen
+function initializeLoading() {
+    const loadingScreen = document.getElementById('loadingScreen');
     
-    // Handle nav link clicks
+    // Hide loading screen after 3 seconds
+    setTimeout(() => {
+        if (loadingScreen) {
+            loadingScreen.style.opacity = '0';
+            setTimeout(() => {
+                loadingScreen.style.display = 'none';
+                isLoading = false;
+                triggerInitialAnimations();
+            }, 500);
+        }
+    }, 3000);
+}
+
+// Navigation System - Fixed
+function initializeNavigation() {
+    const navLinks = document.querySelectorAll('.nav-link[data-page]');
+    const ctaButtons = document.querySelectorAll('button[data-page], .btn[data-page]');
+    
+    console.log('Initializing navigation with', navLinks.length, 'nav links and', ctaButtons.length, 'CTA buttons');
+    
+    // Handle navigation clicks
     navLinks.forEach(link => {
         link.addEventListener('click', function(e) {
             e.preventDefault();
+            console.log('Nav link clicked:', this.getAttribute('data-page'));
             const targetPage = this.getAttribute('data-page');
-            navigateToPage(targetPage);
-            
-            // Update active nav link
-            navLinks.forEach(l => l.classList.remove('active'));
-            this.classList.add('active');
-            
-            // Close mobile menu if open
-            closeMobileMenu();
-        });
-    });
-    
-    // Handle all CTA button clicks
-    const ctaButtons = document.querySelectorAll('[data-page]');
-    ctaButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-            const targetPage = this.getAttribute('data-page');
-            
             if (targetPage) {
                 navigateToPage(targetPage);
-                
-                // Update nav links if navigating via CTA
-                navLinks.forEach(l => l.classList.remove('active'));
-                const correspondingNavLink = document.querySelector(`.nav-link[data-page="${targetPage}"]`);
-                if (correspondingNavLink) {
-                    correspondingNavLink.classList.add('active');
-                }
-                
+                updateActiveNav(this);
                 closeMobileMenu();
             }
         });
     });
+    
+    // Handle CTA button clicks
+    ctaButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('CTA button clicked:', this.getAttribute('data-page'));
+            const targetPage = this.getAttribute('data-page');
+            if (targetPage) {
+                navigateToPage(targetPage);
+                updateActiveNavByPage(targetPage);
+                closeMobileMenu();
+            }
+        });
+    });
+    
+    // Handle logo click to go home
+    const logo = document.querySelector('.company-brand, .brand-name');
+    if (logo) {
+        logo.addEventListener('click', function(e) {
+            e.preventDefault();
+            navigateToPage('home');
+            updateActiveNavByPage('home');
+            closeMobileMenu();
+        });
+        logo.style.cursor = 'pointer';
+    }
 }
 
 function navigateToPage(targetPage) {
+    console.log('Navigating to page:', targetPage);
+    
     const pages = document.querySelectorAll('.page');
+    const targetPageElement = document.getElementById(targetPage);
+    
+    if (!targetPageElement) {
+        console.error('Target page not found:', targetPage);
+        return;
+    }
     
     // Hide all pages
     pages.forEach(page => {
         page.classList.remove('active');
+        page.style.display = 'none';
     });
     
-    // Show target page
-    const targetPageElement = document.getElementById(targetPage);
-    if (targetPageElement) {
-        // Small delay for smooth transition
-        setTimeout(() => {
-            targetPageElement.classList.add('active');
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
-            
-            // Trigger animations for the new page
-            triggerPageAnimations(targetPageElement);
-        }, 100);
+    // Show target page with animation
+    targetPageElement.style.display = 'block';
+    targetPageElement.classList.add('active');
+    
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    // Trigger page-specific animations
+    setTimeout(() => {
+        triggerPageAnimations(targetPageElement);
+    }, 100);
+    
+    console.log('Successfully navigated to:', targetPage);
+}
+
+function updateActiveNav(activeLink) {
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('active');
+    });
+    activeLink.classList.add('active');
+}
+
+function updateActiveNavByPage(targetPage) {
+    const correspondingNavLink = document.querySelector(`.nav-link[data-page="${targetPage}"]`);
+    if (correspondingNavLink) {
+        updateActiveNav(correspondingNavLink);
     }
 }
 
-// Mobile menu functionality
+// Mobile Menu - Fixed
 function initializeMobileMenu() {
     const mobileToggle = document.getElementById('mobileToggle');
     const navMenu = document.querySelector('.nav-menu');
@@ -92,11 +139,19 @@ function initializeMobileMenu() {
             toggleMobileMenu();
         });
         
-        // Close mobile menu when clicking outside
+        // Close when clicking outside
         document.addEventListener('click', function(e) {
             if (!navMenu.contains(e.target) && !mobileToggle.contains(e.target)) {
                 closeMobileMenu();
             }
+        });
+        
+        // Close when clicking nav links
+        const navLinks = navMenu.querySelectorAll('.nav-link');
+        navLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                setTimeout(closeMobileMenu, 100);
+            });
         });
     }
 }
@@ -121,31 +176,131 @@ function closeMobileMenu() {
     }
 }
 
-// Form handling
+// Testimonials Carousel - Fixed
+function initializeTestimonials() {
+    const testimonials = document.querySelectorAll('.testimonial-card');
+    const indicators = document.querySelectorAll('.indicator');
+    const prevBtn = document.getElementById('prevTestimonial');
+    const nextBtn = document.getElementById('nextTestimonial');
+    
+    if (!testimonials.length) return;
+    
+    console.log('Initializing testimonials with', testimonials.length, 'cards');
+    
+    // Auto-rotate testimonials every 6 seconds
+    setInterval(() => {
+        if (!document.querySelector('.testimonials-carousel:hover')) {
+            nextTestimonial();
+        }
+    }, 6000);
+    
+    // Navigation buttons
+    if (prevBtn) {
+        prevBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            prevTestimonial();
+        });
+    }
+    if (nextBtn) {
+        nextBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            nextTestimonial();
+        });
+    }
+    
+    // Indicator clicks
+    indicators.forEach((indicator, index) => {
+        indicator.addEventListener('click', (e) => {
+            e.preventDefault();
+            showTestimonial(index);
+        });
+    });
+}
+
+function nextTestimonial() {
+    currentTestimonial = (currentTestimonial + 1) % 3;
+    showTestimonial(currentTestimonial);
+}
+
+function prevTestimonial() {
+    currentTestimonial = currentTestimonial === 0 ? 2 : currentTestimonial - 1;
+    showTestimonial(currentTestimonial);
+}
+
+function showTestimonial(index) {
+    const testimonials = document.querySelectorAll('.testimonial-card');
+    const indicators = document.querySelectorAll('.indicator');
+    
+    testimonials.forEach((testimonial, i) => {
+        testimonial.classList.toggle('active', i === index);
+    });
+    
+    indicators.forEach((indicator, i) => {
+        indicator.classList.toggle('active', i === index);
+    });
+    
+    currentTestimonial = index;
+}
+
+// Scroll Effects
+function initializeScrollEffects() {
+    const navbar = document.querySelector('.navbar');
+    let lastScrollTop = 0;
+    
+    window.addEventListener('scroll', function() {
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        
+        // Navbar effects
+        if (scrollTop > 100) {
+            navbar?.classList.add('scrolled');
+        } else {
+            navbar?.classList.remove('scrolled');
+        }
+        
+        // Parallax effect for floating cards
+        const floatingCards = document.querySelectorAll('.floating-card');
+        floatingCards.forEach((card, index) => {
+            const speed = 0.3 + (index * 0.1);
+            const ypos = -(scrollTop * speed);
+            card.style.transform = `translateY(${ypos}px)`;
+        });
+        
+        lastScrollTop = scrollTop;
+    });
+}
+
+// Form Handling - Fixed
 function initializeFormHandling() {
     const contactForm = document.getElementById('contactForm');
-    const scheduleBtn = document.getElementById('scheduleBtn');
+    const scheduleBtn = document.getElementById('scheduleConsultation');
     
     if (contactForm) {
+        console.log('Contact form found, initializing...');
         contactForm.addEventListener('submit', handleFormSubmission);
+        
+        // Real-time field validation
+        const fields = contactForm.querySelectorAll('input, select, textarea');
+        fields.forEach(field => {
+            field.addEventListener('blur', validateField);
+            field.addEventListener('input', clearFieldError);
+        });
+    } else {
+        console.log('Contact form not found');
     }
     
     if (scheduleBtn) {
-        scheduleBtn.addEventListener('click', function() {
+        scheduleBtn.addEventListener('click', function(e) {
+            e.preventDefault();
             navigateToPage('contact');
-            
-            // Update nav link
-            const navLinks = document.querySelectorAll('.nav-link');
-            navLinks.forEach(l => l.classList.remove('active'));
-            const contactNavLink = document.querySelector('.nav-link[data-page="contact"]');
-            if (contactNavLink) {
-                contactNavLink.classList.add('active');
-            }
+            updateActiveNavByPage('contact');
             
             setTimeout(() => {
-                const firstInput = contactForm.querySelector('input');
-                if (firstInput) firstInput.focus();
-            }, 500);
+                const firstInput = document.getElementById('firstName');
+                if (firstInput) {
+                    firstInput.focus();
+                    firstInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 1000);
         });
     }
 }
@@ -153,40 +308,42 @@ function initializeFormHandling() {
 function handleFormSubmission(e) {
     e.preventDefault();
     
-    // Get form data
     const formData = new FormData(e.target);
     const formObject = {};
     formData.forEach((value, key) => {
         formObject[key] = value;
     });
     
-    // Validate form
+    console.log('Form submitted with data:', formObject);
+    
+    // Validate all fields
     if (!validateForm(formObject)) {
         return;
     }
     
     // Show loading state
     const submitBtn = e.target.querySelector('button[type="submit"]');
-    const originalText = submitBtn.textContent;
-    submitBtn.textContent = 'Sending...';
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = 'Sending... <span class="btn-arrow">⏳</span>';
     submitBtn.disabled = true;
     
     // Simulate form submission
     setTimeout(() => {
         showFormSuccess();
         e.target.reset();
-        submitBtn.textContent = originalText;
+        submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
     }, 2000);
 }
 
 function validateForm(formData) {
-    const required = ['firstName', 'lastName', 'email'];
+    const required = ['firstName', 'lastName', 'email', 'message'];
     let isValid = true;
     
-    // Clear previous error states
-    document.querySelectorAll('.form-control').forEach(input => {
+    // Clear previous errors
+    document.querySelectorAll('input, select, textarea').forEach(input => {
         input.classList.remove('error');
+        clearFieldError({ target: input });
     });
     
     required.forEach(field => {
@@ -194,25 +351,70 @@ function validateForm(formData) {
             const input = document.getElementById(field);
             if (input) {
                 input.classList.add('error');
+                showFieldError(input, 'This field is required');
                 isValid = false;
             }
         }
     });
     
-    // Validate email format
+    // Email validation
     if (formData.email && !isValidEmail(formData.email)) {
         const emailInput = document.getElementById('email');
         if (emailInput) {
             emailInput.classList.add('error');
+            showFieldError(emailInput, 'Please enter a valid email address');
             isValid = false;
         }
     }
     
-    if (!isValid) {
-        showFormError('Please fill in all required fields correctly.');
+    return isValid;
+}
+
+function validateField(e) {
+    const field = e.target;
+    const value = field.value.trim();
+    
+    if (field.hasAttribute('required') && !value) {
+        field.classList.add('error');
+        showFieldError(field, 'This field is required');
+        return false;
     }
     
-    return isValid;
+    if (field.type === 'email' && value && !isValidEmail(value)) {
+        field.classList.add('error');
+        showFieldError(field, 'Please enter a valid email address');
+        return false;
+    }
+    
+    field.classList.remove('error');
+    clearFieldError(e);
+    return true;
+}
+
+function clearFieldError(e) {
+    const field = e.target;
+    field.classList.remove('error');
+    
+    const existingError = field.parentNode.querySelector('.field-error');
+    if (existingError) {
+        existingError.remove();
+    }
+}
+
+function showFieldError(field, message) {
+    clearFieldError({ target: field });
+    
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'field-error';
+    errorDiv.style.cssText = `
+        color: #ff4444;
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+        animation: slideDown 0.3s ease-out;
+    `;
+    errorDiv.textContent = message;
+    
+    field.parentNode.appendChild(errorDiv);
 }
 
 function isValidEmail(email) {
@@ -221,89 +423,48 @@ function isValidEmail(email) {
 }
 
 function showFormSuccess() {
-    const contactForm = document.getElementById('contactForm');
-    let successMessage = document.querySelector('.form-success');
+    // Create success notification
+    const successDiv = document.createElement('div');
+    successDiv.className = 'form-success';
+    successDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #FF6B35, #FFA726);
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 8px 25px rgba(255, 107, 53, 0.3);
+        z-index: 10000;
+        animation: slideInRight 0.5s ease-out;
+        font-weight: 600;
+        max-width: 300px;
+    `;
     
-    if (!successMessage) {
-        successMessage = document.createElement('div');
-        successMessage.className = 'form-success';
-        successMessage.style.cssText = `
-            background: rgba(var(--color-success-rgb), 0.1);
-            border: 1px solid rgba(var(--color-success-rgb), 0.2);
-            color: var(--color-success);
-            padding: var(--space-16);
-            border-radius: var(--radius-base);
-            margin-bottom: var(--space-16);
-            text-align: center;
-            display: block;
-        `;
-        contactForm.insertBefore(successMessage, contactForm.firstChild);
-    }
+    successDiv.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span style="font-size: 1.2rem;">✅</span>
+            <div>
+                <div>Message sent successfully!</div>
+                <div style="font-size: 0.9rem; opacity: 0.9;">We'll respond within 2 hours</div>
+            </div>
+        </div>
+    `;
     
-    successMessage.innerHTML = '✓ Thank you! Your message has been sent successfully. We\'ll get back to you within 24 hours.';
-    successMessage.style.display = 'block';
+    document.body.appendChild(successDiv);
     
+    // Remove success message after 5 seconds
     setTimeout(() => {
-        if (successMessage) {
-            successMessage.style.display = 'none';
+        if (successDiv.parentNode) {
+            successDiv.style.animation = 'slideOutRight 0.5s ease-out forwards';
+            setTimeout(() => successDiv.remove(), 500);
         }
     }, 5000);
 }
 
-function showFormError(message) {
-    const contactForm = document.getElementById('contactForm');
-    let errorMessage = document.querySelector('.form-error');
-    
-    if (!errorMessage) {
-        errorMessage = document.createElement('div');
-        errorMessage.className = 'form-error';
-        errorMessage.style.cssText = `
-            background: rgba(var(--color-error-rgb), 0.1);
-            border: 1px solid rgba(var(--color-error-rgb), 0.2);
-            color: var(--color-error);
-            padding: var(--space-16);
-            border-radius: var(--radius-base);
-            margin-bottom: var(--space-16);
-            text-align: center;
-            display: block;
-        `;
-        contactForm.insertBefore(errorMessage, contactForm.firstChild);
-    }
-    
-    errorMessage.textContent = message;
-    errorMessage.style.display = 'block';
-    
-    setTimeout(() => {
-        if (errorMessage) {
-            errorMessage.style.display = 'none';
-        }
-    }, 5000);
-}
-
-// Scroll effects
-function initializeScrollEffects() {
-    let lastScrollTop = 0;
-    const navbar = document.querySelector('.navbar');
-    
-    window.addEventListener('scroll', function() {
-        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        
-        if (scrollTop > 100) {
-            if (navbar) navbar.classList.add('scrolled');
-        } else {
-            if (navbar) navbar.classList.remove('scrolled');
-        }
-        
-        // Update scroll indicator
-        updateScrollIndicator();
-        
-        lastScrollTop = scrollTop;
-    });
-}
-
-// Animation triggers
+// Animations
 function initializeAnimations() {
-    // Intersection Observer for animations
+    // Intersection Observer for scroll animations
     const observerOptions = {
         threshold: 0.1,
         rootMargin: '0px 0px -50px 0px'
@@ -311,228 +472,266 @@ function initializeAnimations() {
     
     const observer = new IntersectionObserver(function(entries) {
         entries.forEach(entry => {
-            if (entry.isIntersecting) {
+            if (entry.isIntersecting && !entry.target.classList.contains('animated')) {
                 entry.target.classList.add('animate-in');
+                entry.target.classList.add('animated');
+                
+                // Special animation for service cards
+                if (entry.target.classList.contains('service-card')) {
+                    animateServiceCard(entry.target);
+                }
+                
+                // Special animation for case study cards
+                if (entry.target.classList.contains('case-study-card')) {
+                    animateCaseStudyCard(entry.target);
+                }
             }
         });
     }, observerOptions);
     
-    // Observe elements for animation
-    const animatableElements = document.querySelectorAll(
-        '.service-card, .feature-item, .value-card, .stat-item, .approach-step, .timeline-item'
-    );
+    // Observe elements for animations
+    const animatableElements = document.querySelectorAll(`
+        .service-card,
+        .case-study-card,
+        .testimonial-card,
+        .value-item,
+        .value-card,
+        .service-detail-card,
+        .contact-item
+    `);
     
     animatableElements.forEach(el => {
         observer.observe(el);
     });
 }
 
-function triggerPageAnimations(pageElement) {
-    const animatableElements = pageElement.querySelectorAll(
-        '.service-card, .feature-item, .value-card, .stat-item, .approach-step, .timeline-item'
-    );
+function animateServiceCard(card) {
+    const tags = card.querySelectorAll('.tag');
     
-    animatableElements.forEach((el, index) => {
+    tags.forEach((tag, index) => {
         setTimeout(() => {
-            el.classList.add('animate-in');
+            tag.style.animation = 'slideUp 0.3s ease-out forwards';
         }, index * 100);
     });
 }
 
-// Scroll indicator
-function createScrollIndicator() {
-    const indicator = document.createElement('div');
-    indicator.className = 'scroll-indicator';
-    indicator.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 0%;
-        height: 3px;
-        background: var(--color-primary);
-        z-index: 1001;
-        transition: width 0.1s ease;
-    `;
-    document.body.appendChild(indicator);
+function animateCaseStudyCard(card) {
+    const resultItems = card.querySelectorAll('.result-item');
+    
+    resultItems.forEach((item, index) => {
+        setTimeout(() => {
+            item.style.animation = 'slideUp 0.3s ease-out forwards';
+        }, index * 150);
+    });
 }
 
-function updateScrollIndicator() {
-    const indicator = document.querySelector('.scroll-indicator');
-    if (indicator) {
-        const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-        const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-        const scrolled = height > 0 ? (winScroll / height) * 100 : 0;
-        indicator.style.width = scrolled + '%';
-    }
-}
-
-// Add interactive effects
-function addInteractiveEffects() {
-    // Add ripple effect to buttons
-    document.querySelectorAll('.btn').forEach(button => {
-        button.addEventListener('click', function(e) {
-            const ripple = document.createElement('span');
-            const rect = this.getBoundingClientRect();
-            const size = Math.max(rect.width, rect.height);
-            const x = e.clientX - rect.left - size / 2;
-            const y = e.clientY - rect.top - size / 2;
-            
-            ripple.style.cssText = `
-                position: absolute;
-                width: ${size}px;
-                height: ${size}px;
-                left: ${x}px;
-                top: ${y}px;
-                background: rgba(255, 255, 255, 0.3);
-                border-radius: 50%;
-                transform: scale(0);
-                animation: ripple 0.6s linear;
-                pointer-events: none;
-                z-index: 1;
-            `;
-            
-            this.style.position = 'relative';
-            this.style.overflow = 'hidden';
-            this.appendChild(ripple);
-            
-            setTimeout(() => {
-                if (ripple.parentNode) {
-                    ripple.remove();
-                }
-            }, 600);
+// Interactive Elements
+function initializeInteractiveElements() {
+    // Service card hover effects
+    const serviceCards = document.querySelectorAll('.service-card');
+    serviceCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-12px) scale(1.02)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+        });
+    });
+    
+    // Button ripple effects
+    const buttons = document.querySelectorAll('.btn');
+    buttons.forEach(button => {
+        // Skip buttons that already have click handlers for navigation
+        if (!button.hasAttribute('data-page')) {
+            button.addEventListener('click', function(e) {
+                const ripple = document.createElement('span');
+                const rect = this.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const x = e.clientX - rect.left - size / 2;
+                const y = e.clientY - rect.top - size / 2;
+                
+                ripple.style.cssText = `
+                    position: absolute;
+                    width: ${size}px;
+                    height: ${size}px;
+                    left: ${x}px;
+                    top: ${y}px;
+                    background: rgba(255, 255, 255, 0.3);
+                    border-radius: 50%;
+                    transform: scale(0);
+                    animation: ripple 0.6s linear;
+                    pointer-events: none;
+                    z-index: 1;
+                `;
+                
+                this.style.position = 'relative';
+                this.style.overflow = 'hidden';
+                this.appendChild(ripple);
+                
+                setTimeout(() => {
+                    if (ripple.parentNode) {
+                        ripple.remove();
+                    }
+                }, 600);
+            });
+        }
+    });
+    
+    // Smooth hover transitions for cards
+    const cards = document.querySelectorAll('.service-detail-card, .value-item, .case-study-card');
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
         });
     });
 }
 
-// Add focus management for accessibility
-function manageFocus() {
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Tab') {
-            document.body.classList.add('keyboard-navigation');
-        }
-        
-        if (e.key === 'Escape') {
-            const navMenu = document.querySelector('.nav-menu');
-            if (navMenu && navMenu.classList.contains('mobile-open')) {
-                closeMobileMenu();
-            }
-        }
+// Trigger initial animations after loading
+function triggerInitialAnimations() {
+    // Animate hero elements
+    const heroElements = document.querySelectorAll('.hero-badge, .hero-title, .hero-description, .hero-cta, .hero-stats');
+    heroElements.forEach((element, index) => {
+        setTimeout(() => {
+            element.style.animation = 'slideUp 0.8s ease-out forwards';
+        }, index * 200);
     });
     
-    document.addEventListener('mousedown', function() {
-        document.body.classList.remove('keyboard-navigation');
+    // Animate floating cards
+    const floatingCards = document.querySelectorAll('.floating-card');
+    floatingCards.forEach((card, index) => {
+        setTimeout(() => {
+            card.style.opacity = '1';
+            card.style.animation = `float 6s ease-in-out infinite ${index * 2}s`;
+        }, 500 + index * 300);
+    });
+    
+    // Animate center logo
+    const centerLogo = document.querySelector('.center-logo');
+    if (centerLogo) {
+        setTimeout(() => {
+            centerLogo.style.animation = 'pulse 3s ease-in-out infinite';
+        }, 1000);
+    }
+}
+
+// Trigger page-specific animations
+function triggerPageAnimations(pageElement) {
+    const animatableElements = pageElement.querySelectorAll(`
+        .service-module,
+        .mission-content,
+        .value-item,
+        .contact-item
+    `);
+    
+    animatableElements.forEach((element, index) => {
+        setTimeout(() => {
+            element.classList.add('animate-in');
+        }, index * 100);
     });
 }
 
-// Add dynamic styles
-function addDynamicStyles() {
-    const styles = `
-        /* Mobile menu styles */
-        @media (max-width: 768px) {
-            .nav-menu {
-                position: fixed;
-                top: 100%;
-                left: 0;
-                right: 0;
-                background: var(--color-surface);
-                border-top: 1px solid var(--color-border);
-                flex-direction: column;
-                padding: var(--space-20);
-                gap: var(--space-16);
-                transform: translateY(-100%);
-                opacity: 0;
-                visibility: hidden;
-                transition: all var(--duration-normal) var(--ease-standard);
-                box-shadow: var(--shadow-lg);
-                z-index: 999;
-            }
-            
-            .nav-menu.mobile-open {
-                transform: translateY(0);
-                opacity: 1;
-                visibility: visible;
-            }
-            
-            .nav-cta {
-                margin-left: 0;
-                margin-top: var(--space-16);
-            }
-            
-            .mobile-menu-toggle.active span:nth-child(1) {
-                transform: rotate(45deg) translate(5px, 5px);
-            }
-            
-            .mobile-menu-toggle.active span:nth-child(2) {
-                opacity: 0;
-            }
-            
-            .mobile-menu-toggle.active span:nth-child(3) {
-                transform: rotate(-45deg) translate(7px, -6px);
-            }
+// Keyboard navigation support
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeMobileMenu();
+    }
+});
+
+// Add custom CSS animations dynamically
+const customAnimations = `
+    @keyframes slideUp {
+        0% {
+            opacity: 0;
+            transform: translateY(30px);
         }
-        
-        /* Form validation styles */
-        .form-control.error {
-            border-color: var(--color-error);
-            box-shadow: 0 0 0 3px rgba(var(--color-error-rgb), 0.1);
+        100% {
+            opacity: 1;
+            transform: translateY(0);
         }
-        
-        .form-control.error:focus {
-            border-color: var(--color-error);
-            outline-color: var(--color-error);
-        }
-        
-        /* Navbar scroll styles */
-        .navbar.scrolled {
-            background: rgba(var(--color-surface), 0.98);
-            backdrop-filter: blur(15px);
-            box-shadow: var(--shadow-sm);
-        }
-        
-        /* Ripple animation */
-        @keyframes ripple {
-            to {
-                transform: scale(4);
-                opacity: 0;
-            }
-        }
-        
-        /* Keyboard navigation styles */
-        .keyboard-navigation *:focus {
-            outline: 2px solid var(--color-primary);
-            outline-offset: 2px;
-        }
-        
-        .keyboard-navigation .btn:focus {
-            box-shadow: var(--focus-ring);
-        }
-        
-        /* Button hover effects */
-        .btn {
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-            transition: left 0.5s;
-        }
-        
-        .btn:hover::before {
-            left: 100%;
-        }
-    `;
+    }
     
-    const styleSheet = document.createElement('style');
-    styleSheet.textContent = styles;
-    document.head.appendChild(styleSheet);
+    @keyframes slideDown {
+        0% {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes slideInRight {
+        0% {
+            opacity: 0;
+            transform: translateX(100px);
+        }
+        100% {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    @keyframes slideOutRight {
+        0% {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        100% {
+            opacity: 0;
+            transform: translateX(100px);
+        }
+    }
+    
+    @keyframes ripple {
+        to {
+            transform: scale(4);
+            opacity: 0;
+        }
+    }
+    
+    .animate-in {
+        animation: slideUp 0.6s ease-out forwards;
+    }
+    
+    .floating-card {
+        opacity: 0;
+    }
+    
+    .service-detail-card.error,
+    input.error,
+    select.error,
+    textarea.error {
+        border-color: #ff4444 !important;
+        box-shadow: 0 0 0 3px rgba(255, 68, 68, 0.2) !important;
+    }
+`;
+
+const styleSheet = document.createElement('style');
+styleSheet.textContent = customAnimations;
+document.head.appendChild(styleSheet);
+
+// Export functions for external use
+window.LaunchQuests = {
+    navigateToPage,
+    showTestimonial,
+    nextTestimonial,
+    prevTestimonial,
+    toggleMobileMenu
+};
+
+// Initialize navigation immediately if DOM is already loaded
+if (document.readyState === 'loading') {
+    // DOM hasn't finished loading yet
+    document.addEventListener('DOMContentLoaded', initializeNavigation);
+} else {
+    // DOM is already loaded
+    initializeNavigation();
 }
 
-// Initialize dynamic styles
-addDynamicStyles();
+console.log('Launch Quests website JavaScript loaded successfully');
