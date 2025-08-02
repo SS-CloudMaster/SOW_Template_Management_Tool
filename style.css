@@ -2061,3 +2061,34 @@ textarea:focus-visible,
   outline: 2px solid var(--orange-primary);
   outline-offset: 2px;
 }
+/* home page LQ logo */
+
+.logo-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* or center if needed */
+  gap: 4px;
+}
+
+.brand-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logo-image {
+  height: 32px; /* Match this with brand-name font-size */
+  width: auto;
+}
+
+.brand-name {
+  font-size: 32px;
+  font-weight: 600;
+  color: #000;
+}
+
+.brand-tagline {
+  font-size: 14px;
+  color: #666;
+  margin-left: 40px; /* Optional: align under text instead of image */
+}
