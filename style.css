@@ -2075,7 +2075,7 @@ textarea:focus-visible,
 }
 
 .logo-image {
-  height: 32px; /* Match brand-name font-size */
+  height: 42px; /* Match brand-name font-size */
   width: auto;
 }
 
