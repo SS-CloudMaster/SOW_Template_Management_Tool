@@ -2077,6 +2077,7 @@ textarea:focus-visible,
 .logo-image {
   height: 42px; /* Match brand-name font-size */
   width: auto;
+  margin-right: 0.5ch;
 }
 
 .brand-text {
