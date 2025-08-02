@@ -2065,30 +2065,34 @@ textarea:focus-visible,
 
 .logo-container {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start; /* or center if needed */
-  gap: 4px;
+  align-items: center;
 }
 
 .brand-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .logo-image {
-  height: 32px; /* Match this with brand-name font-size */
+  height: 32px; /* Match brand-name font-size */
   width: auto;
 }
 
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
 .brand-name {
-  font-size: 32px;
+  font-size: 20px;
   font-weight: 600;
-  color: #000;
+  color: #ff5722; /* Your current orange brand color */
 }
 
 .brand-tagline {
-  font-size: 14px;
-  color: #666;
-  margin-left: 40px; /* Optional: align under text instead of image */
+  font-size: 12px;
+  color: #aaa;
 }
+
