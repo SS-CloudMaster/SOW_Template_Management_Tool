@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOW Template Management System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Landing/Home Screen -->
+    <div id="homeScreen" class="screen active">
+        <div class="home-container">
+            <div class="home-header">
+                <h1>SOW Template Management System</h1>
+                <div class="welcome-section">
+                    <div class="user-welcome">
+                        <h3 id="welcomeUser">Welcome, John Smith</h3>
+                        <p id="currentDateTime" class="current-time"></p>
+                        <p class="user-email">john.smith@company.com</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="navigation-cards">
+                <div class="nav-card card" data-screen="sowGenerator">
+                    <div class="card__body">
+                        <div class="nav-icon">📄</div>
+                        <h4>SOW Template Generator</h4>
+                        <p>Generate and download SOW templates based on client requirements and cloud platform selection</p>
+                    </div>
+                </div>
+                
+                <div class="nav-card card" data-screen="uploadSow">
+                    <div class="card__body">
+                        <div class="nav-icon">📤</div>
+                        <h4>Upload SOW for Review</h4>
+                        <p>Submit completed SOW documents for delivery team review and approval</p>
+                    </div>
+                </div>
+                
+                <div class="nav-card card" data-screen="requestHistories">
+                    <div class="card__body">
+                        <div class="nav-icon">📊</div>
+                        <h4>Request Histories</h4>
+                        <p>View download statistics, upload histories, and consolidated reports</p>
+                    </div>
+                </div>
+                
+                <div class="nav-card card" data-screen="adminDashboard">
+                    <div class="card__body">
+                        <div class="nav-icon">⚙️</div>
+                        <h4>Admin Dashboard</h4>
+                        <p>Manage templates, users, approvals, and system administration</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SOW Template Generator Screen -->
+    <div id="sowGeneratorScreen" class="screen">
+        <nav class="navbar">
+            <div class="navbar-content">
+                <button class="btn btn--outline btn--sm" onclick="showScreen('homeScreen')">← Back to Home</button>
+                <h3>SOW Template Generator</h3>
+                <span id="userInfo1" class="user-info">John Smith</span>
+            </div>
+        </nav>
+
+        <div class="main-content">
+            <div class="container">
+                <!-- Step 1: Client Details -->
+                <div id="clientDetailsStep" class="generator-step active">
+                    <div class="step-card card">
+                        <div class="card__body">
+                            <h4>Step 1: Client Information</h4>
+                            <form id="clientDetailsForm">
+                                <div class="form-group">
+                                    <label class="form-label" for="clientName">Client Name</label>
+                                    <input type="text" id="clientName" class="form-control" placeholder="Enter client name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="endCustomerName">End Customer Name</label>
+                                    <input type="text" id="endCustomerName" class="form-control" placeholder="Enter end customer name" required>
+                                </div>
+                                <button type="button" class="btn btn--primary" onclick="proceedToSOWSelection()">Next</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: SOW Selection -->
+                <div id="sowSelectionStep" class="generator-step">
+                    <div class="step-card card">
+                        <div class="card__body">
+                            <h4>Step 2: SOW Configuration</h4>
+                            <form id="sowSelectionForm">
+                                <div class="form-group">
+                                    <label class="form-label" for="sowType">SOW Type</label>
+                                    <select id="sowType" class="form-control" required>
+                                        <option value="">Select SOW Type</option>
+                                        <option value="Migration OTI">Migration OTI</option>
+                                        <option value="Greenfield OTI">Greenfield OTI</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="cloudPlatform">Cloud Platform</label>
+                                    <select id="cloudPlatform" class="form-control" required>
+                                        <option value="">Select Cloud Platform</option>
+                                        <option value="AWS">AWS</option>
+                                        <option value="Azure">Azure</option>
+                                        <option value="GCP">GCP</option>
+                                    </select>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="button" class="btn btn--outline" onclick="goBackToClientDetails()">Back</button>
+                                    <button type="button" class="btn btn--primary" onclick="downloadSOW()">Download SOW</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload SOW Screen -->
+    <div id="uploadSowScreen" class="screen">
+        <nav class="navbar">
+            <div class="navbar-content">
+                <button class="btn btn--outline btn--sm" onclick="showScreen('homeScreen')">← Back to Home</button>
+                <h3>Upload SOW for Review</h3>
+                <span id="userInfo2" class="user-info">John Smith</span>
+            </div>
+        </nav>
+
+        <div class="main-content">
+            <div class="container">
+                <!-- Step 1: File Upload -->
+                <div id="fileUploadStep" class="upload-step active">
+                    <div class="upload-card card">
+                        <div class="card__body">
+                            <h4>Upload SOW Document</h4>
+                            <div class="upload-area" id="uploadArea">
+                                <div class="upload-placeholder">
+                                    <div class="upload-icon">📁</div>
+                                    <p>Drag and drop your SOW document here</p>
+                                    <p class="upload-hint">or click to browse files</p>
+                                    <input type="file" id="fileInput" accept=".pdf,.doc,.docx" style="display: none;">
+                                </div>
+                                <div class="upload-success" id="uploadSuccess" style="display: none;">
+                                    <div class="upload-icon">✅</div>
+                                    <p>File uploaded successfully!</p>
+                                    <p id="uploadedFileName" class="upload-filename"></p>
+                                    <button class="btn btn--primary" onclick="proceedToProjectDetails()">Continue</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Project Details -->
+                <div id="projectDetailsStep" class="upload-step">
+                    <div class="project-card card">
+                        <div class="card__body">
+                            <h4>Project Details</h4>
+                            <form id="projectDetailsForm">
+                                <div class="form-group">
+                                    <label class="form-label" for="projectName">Project Name</label>
+                                    <input type="text" id="projectName" class="form-control" placeholder="Enter project name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="projectEndCustomer">End Customer Name</label>
+                                    <input type="text" id="projectEndCustomer" class="form-control" placeholder="Enter end customer name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="opportunityId">Opportunity ID</label>
+                                    <input type="text" id="opportunityId" class="form-control" placeholder="Enter opportunity ID" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="boqLink">BOQ Link</label>
+                                    <input type="url" id="boqLink" class="form-control" placeholder="Enter BOQ link (optional)">
+                                </div>
+                                <div class="form-actions">
+                                    <button type="button" class="btn btn--outline" onclick="goBackToFileUpload()">Back</button>
+                                    <button type="button" class="btn btn--primary" onclick="submitRequest()">Submit Request</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Status -->
+                <div id="statusStep" class="upload-step">
+                    <div class="status-card card">
+                        <div class="card__body">
+                            <h4>Request Status</h4>
+                            <div class="status-table">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Request ID</th>
+                                            <th>Project Name</th>
+                                            <th>Status</th>
+                                            <th>Submitted Date</th>
+                                            <th>Assigned To</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="statusTableBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                            <button class="btn btn--outline" onclick="resetUploadProcess()">Upload Another SOW</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Request Histories Screen -->
+    <div id="requestHistoriesScreen" class="screen">
+        <nav class="navbar">
+            <div class="navbar-content">
+                <button class="btn btn--outline btn--sm" onclick="showScreen('homeScreen')">← Back to Home</button>
+                <h3>Request Histories</h3>
+                <span id="userInfo3" class="user-info">John Smith</span>
+            </div>
+        </nav>
+
+        <div class="main-content">
+            <div class="container">
+                <!-- Summary Cards -->
+                <div class="summary-cards">
+                    <div class="summary-card card">
+                        <div class="card__body">
+                            <h3 id="totalDownloads">45</h3>
+                            <p>Total Downloads</p>
+                        </div>
+                    </div>
+                    <div class="summary-card card">
+                        <div class="card__body">
+                            <h3 id="totalUploads">12</h3>
+                            <p>Total Uploads</p>
+                        </div>
+                    </div>
+                    <div class="summary-card card">
+                        <div class="card__body">
+                            <h3 id="pendingRequests">3</h3>
+                            <p>Pending Requests</p>
+                        </div>
+                    </div>
+                    <div class="summary-card card">
+                        <div class="card__body">
+                            <h3 id="completedRequests">8</h3>
+                            <p>Completed Requests</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Download History -->
+                <div class="history-section card">
+                    <div class="card__body">
+                        <h4>Download Statistics</h4>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>User Name</th>
+                                        <th>Downloaded SOW Type</th>
+                                        <th>Download Date</th>
+                                        <th>Cloud Platform</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="downloadHistoryTable">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upload History -->
+                <div class="history-section card">
+                    <div class="card__body">
+                        <h4>Upload Statistics</h4>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>User Name</th>
+                                        <th>Upload Date</th>
+                                        <th>Status</th>
+                                        <th>Document Name</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="uploadHistoryTable">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard Screen -->
+    <div id="adminDashboardScreen" class="screen">
+        <nav class="navbar">
+            <div class="navbar-content">
+                <button class="btn btn--outline btn--sm" onclick="showScreen('homeScreen')">← Back to Home</button>
+                <h3>Admin Dashboard</h3>
+                <span id="userInfo4" class="user-info">Mike Davis (Admin)</span>
+            </div>
+        </nav>
+
+        <div class="main-content">
+            <div class="container">
+                <div class="admin-tabs">
+                    <button class="tab-btn active" data-tab="templates">Template Management</button>
+                    <button class="tab-btn" data-tab="requests">Pending Requests</button>
+                    <button class="tab-btn" data-tab="users">User Management</button>
+                    <button class="tab-btn" data-tab="analytics">System Analytics</button>
+                </div>
+
+                <!-- Template Management Tab -->
+                <div id="templatesTab" class="tab-panel active">
+                    <div class="admin-section card">
+                        <div class="card__body">
+                            <h4>Upload New SOW Version</h4>
+                            <div class="template-upload-area" id="templateUploadArea">
+                                <div class="upload-placeholder">
+                                    <div class="upload-icon">📄</div>
+                                    <p>Upload new SOW template version</p>
+                                    <input type="file" id="templateFileInput" accept=".doc,.docx" style="display: none;">
+                                    <button class="btn btn--primary" onclick="document.getElementById('templateFileInput').click()">Select Template File</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="admin-section card">
+                        <div class="card__body">
+                            <h4>Current Templates</h4>
+                            <div id="templatesList" class="templates-list"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pending Requests Tab -->
+                <div id="requestsTab" class="tab-panel">
+                    <div class="admin-section card">
+                        <div class="card__body">
+                            <h4>Requests Awaiting Approval</h4>
+                            <div id="pendingRequestsList" class="requests-list"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Management Tab -->
+                <div id="usersTab" class="tab-panel">
+                    <div class="admin-section card">
+                        <div class="card__body">
+                            <h4>User Activity</h4>
+                            <div id="userActivityList" class="activity-list"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analytics Tab -->
+                <div id="analyticsTab" class="tab-panel">
+                    <div class="admin-section card">
+                        <div class="card__body">
+                            <h4>System Statistics</h4>
+                            <div class="analytics-grid">
+                                <div class="analytics-card">
+                                    <h3 id="analyticsDownloads">45</h3>
+                                    <p>Total Downloads</p>
+                                </div>
+                                <div class="analytics-card">
+                                    <h3 id="analyticsUploads">12</h3>
+                                    <p>Total Uploads</p>
+                                </div>
+                                <div class="analytics-card">
+                                    <h3 id="analyticsUsers">23</h3>
+                                    <p>Total Users</p>
+                                </div>
+                                <div class="analytics-card">
+                                    <h3 id="analyticsActive">15</h3>
+                                    <p>Active Users</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Review Modal for Admin -->
+    <div id="reviewModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 id="modalTitle">Review Request</h4>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="modalContent"></div>
+                <div class="review-actions">
+                    <div class="form-group">
+                        <label class="form-label" for="reviewComment">Comments</label>
+                        <textarea id="reviewComment" class="form-control" rows="3" placeholder="Add your comments..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="assignAgent">Assign Agent</label>
+                        <select id="assignAgent" class="form-control">
+                            <option value="">Select agent</option>
+                            <option value="Lisa Brown">Lisa Brown</option>
+                            <option value="Mike Davis">Mike Davis</option>
+                            <option value="Sarah Johnson">Sarah Johnson</option>
+                        </select>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn--primary" onclick="approveRequest()">✅ Approve</button>
+                        <button class="btn btn--outline" onclick="rejectRequest()">❌ Reject</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
